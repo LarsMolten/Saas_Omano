@@ -1,0 +1,21 @@
+# Dependencies
+api/vendor/
+web/node_modules/
+
+# Environment files
+api/.env
+web/.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+web/.next/
+api/storage/*.key
