@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\ServiceController;
 use App\Http\Controllers\Api\V1\PortfolioController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\FavoriteController;
+use App\Http\Controllers\Api\V1\QuoteController;
 use App\Http\Middleware\CheckRole;
 
 Route::prefix('v1')->group(function () {
@@ -26,7 +27,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/providers/{id}/portfolio', [PortfolioController::class, 'index']);
     Route::get('/search', SearchController::class);
 
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware('jwt.auth')->group(function () {
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
 
@@ -48,6 +49,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/favorites', [FavoriteController::class, 'index']);
         Route::post('/favorites', [FavoriteController::class, 'store']);
         Route::delete('/favorites/{provider_id}', [FavoriteController::class, 'destroy']);
+
+        Route::get('/quotes', [QuoteController::class, 'index']);
+        Route::post('/quotes', [QuoteController::class, 'store'])
+            ->middleware('throttle:10,1');
+        Route::patch('/quotes/{id}/respond', [QuoteController::class, 'respond']);
 
         Route::middleware(CheckRole::class . ':admin')->prefix('admin')->group(function () {
             Route::get('/users', fn () => response()->json(['message' => 'Admin users list']));

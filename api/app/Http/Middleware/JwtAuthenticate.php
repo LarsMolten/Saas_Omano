@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
@@ -16,9 +17,7 @@ class JwtAuthenticate
     public function handle(Request $request, Closure $next): Response
     {
         try {
-            if (!JWTAuth::parseToken()->check()) {
-                return response()->json(['message' => 'Non autorisé.'], 401);
-            }
+            $user = JWTAuth::setRequest($request)->parseToken()->authenticate();
         } catch (TokenBlacklistedException $e) {
             return response()->json(['message' => 'Token révoqué.'], 401);
         } catch (TokenInvalidException $e) {
@@ -28,6 +27,8 @@ class JwtAuthenticate
         } catch (TokenAbsentException $e) {
             return response()->json(['message' => 'Token manquant.'], 401);
         }
+
+        Auth::guard('api')->setUser($user);
 
         return $next($request);
     }

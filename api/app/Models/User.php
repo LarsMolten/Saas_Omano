@@ -102,4 +102,14 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Favorite::class, 'provider_id');
     }
+
+    public function quoteRequests(): HasMany
+    {
+        return $this->hasMany(QuoteRequest::class, 'user_id');
+    }
+
+    public function receivedQuotes(): HasMany
+    {
+        return $this->hasMany(QuoteRequest::class, 'provider_id');
+    }
 }
