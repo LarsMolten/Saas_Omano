@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\PortfolioController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\QuoteController;
+use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Middleware\CheckRole;
 
 Route::prefix('v1')->group(function () {
@@ -25,6 +26,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/providers/{id}/services', [ServiceController::class, 'index']);
     Route::get('/providers/{id}/portfolio', [PortfolioController::class, 'index']);
+    Route::get('/providers/{id}/reviews', [ReviewController::class, 'providerReviews']);
     Route::get('/search', SearchController::class);
 
     Route::middleware('jwt.auth')->group(function () {
@@ -54,6 +56,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/quotes', [QuoteController::class, 'store'])
             ->middleware('throttle:10,1');
         Route::patch('/quotes/{id}/respond', [QuoteController::class, 'respond']);
+
+        Route::middleware(CheckRole::class . ':client')->group(function () {
+            Route::post('/reviews', [ReviewController::class, 'store']);
+        });
+
+        Route::patch('/reviews/{id}', [ReviewController::class, 'update']);
+        Route::post('/reviews/{id}/report', [ReviewController::class, 'report']);
 
         Route::middleware(CheckRole::class . ':admin')->prefix('admin')->group(function () {
             Route::get('/users', fn () => response()->json(['message' => 'Admin users list']));

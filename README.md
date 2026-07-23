@@ -124,6 +124,12 @@ Le frontend sera disponible sur `http://localhost:3000`
 - `POST /api/v1/quotes` — Create quote request (client only, rate limited 10/day)
 - `PATCH /api/v1/quotes/{id}/respond` — Respond to quote (provider only, status: accepted/declined/answered)
 
+### Reviews
+- `GET /api/v1/providers/{id}/reviews` — List provider reviews (public, published only)
+- `POST /api/v1/reviews` — Create review (client only, one per provider, rate limited)
+- `PATCH /api/v1/reviews/{id}` — Edit own review (within 48h)
+- `POST /api/v1/reviews/{id}/report` — Report a review (any authenticated user)
+
 ### Search parameters
 - `q` — Free text search (name, bio, city, category via pg_trgm + tsvector)
 - `category` — Filter by category (partial match)
@@ -162,6 +168,7 @@ npm run build
 │   │   │   ├── HealthController.php
 │   │   │   ├── PortfolioController.php
 │   │   │   ├── QuoteController.php
+│   │   │   ├── ReviewController.php
 │   │   │   ├── SearchController.php
 │   │   │   └── ServiceController.php
 │   │   ├── Http/Middleware/
@@ -174,9 +181,12 @@ npm run build
 │   │   │   ├── PortfolioItem.php
 │   │   │   ├── PortfolioMedia.php
 │   │   │   ├── QuoteRequest.php
+│   │   │   ├── Review.php
 │   │   │   ├── Service.php
 │   │   │   ├── ServiceOption.php
 │   │   │   └── User.php
+│   │   └── Observers/
+│   │       └── ReviewObserver.php
 │   │   └── Modules/
 │   │       ├── Auth/
 │   │       └── Providers/
@@ -192,6 +202,7 @@ npm run build
 │       ├── FavoriteTest.php
 │       ├── PortfolioCrudTest.php
 │       ├── QuoteTest.php
+│       ├── ReviewTest.php
 │       ├── SearchTest.php
 │       └── ServiceCrudTest.php
 ├── web/                    # Next.js Frontend

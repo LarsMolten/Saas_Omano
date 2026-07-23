@@ -31,6 +31,7 @@ class User extends Authenticatable implements JWTSubject
         'latitude',
         'longitude',
         'average_rating',
+        'rating_count',
     ];
 
     protected $hidden = [
@@ -48,6 +49,7 @@ class User extends Authenticatable implements JWTSubject
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
             'average_rating' => 'decimal:2',
+            'rating_count' => 'integer',
         ];
     }
 
@@ -111,5 +113,15 @@ class User extends Authenticatable implements JWTSubject
     public function receivedQuotes(): HasMany
     {
         return $this->hasMany(QuoteRequest::class, 'provider_id');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class, 'user_id');
+    }
+
+    public function receivedReviews(): HasMany
+    {
+        return $this->hasMany(Review::class, 'provider_id');
     }
 }
