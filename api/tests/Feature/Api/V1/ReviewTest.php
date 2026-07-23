@@ -347,7 +347,7 @@ class ReviewTest extends TestCase
 
         $response = $this->postJson(
             "/api/v1/reviews/{$review->id}/report",
-            [],
+            ['reason' => 'spam'],
             ['Authorization' => "Bearer {$this->prestataireToken}"]
         );
 
@@ -369,7 +369,7 @@ class ReviewTest extends TestCase
 
         $response = $this->postJson(
             "/api/v1/reviews/{$review->id}/report",
-            [],
+            ['reason' => 'spam'],
             ['Authorization' => "Bearer {$this->clientToken}"]
         );
 

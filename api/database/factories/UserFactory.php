@@ -53,6 +53,27 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function admin(): static
+    {
+        return $this->state(fn () => [
+            'role' => 'admin',
+        ]);
+    }
+
+    public function suspended(): static
+    {
+        return $this->state(fn () => [
+            'status' => 'suspended',
+        ]);
+    }
+
+    public function banned(): static
+    {
+        return $this->state(fn () => [
+            'status' => 'banned',
+        ]);
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

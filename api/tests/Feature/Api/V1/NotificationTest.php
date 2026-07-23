@@ -122,7 +122,7 @@ class NotificationTest extends TestCase
 
         $this->postJson(
             "/api/v1/reviews/{$review->id}/report",
-            [],
+            ['reason' => 'spam'],
             ['Authorization' => "Bearer {$adminToken}"]
         )->assertOk();
 

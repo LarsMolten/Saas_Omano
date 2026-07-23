@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\SendNotification;
+use App\Models\Report;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -111,7 +112,20 @@ class ReviewController extends Controller
             ], 422);
         }
 
+        $validated = $request->validate([
+            'reason' => 'required|in:inappropriate,spam,fake,other',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
         $review->update(['status' => 'reported']);
+
+        Report::create([
+            'reporter_id' => $user->id,
+            'reportable_type' => 'review',
+            'reportable_id' => $review->id,
+            'reason' => $validated['reason'],
+            'description' => $validated['description'] ?? null,
+        ]);
 
         $admins = User::where('role', 'admin')->pluck('id');
         foreach ($admins as $adminId) {

@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\StatsController;
+use App\Http\Controllers\Api\V1\AdminController;
 use App\Http\Middleware\CheckRole;
 
 Route::prefix('v1')->group(function () {
@@ -84,7 +85,21 @@ Route::prefix('v1')->group(function () {
         Route::get('/my/stats', [StatsController::class, 'myStats']);
 
         Route::middleware(CheckRole::class . ':admin')->prefix('admin')->group(function () {
-            Route::get('/users', fn () => response()->json(['message' => 'Admin users list']));
+            Route::get('/users', [AdminController::class, 'users']);
+            Route::patch('/users', [AdminController::class, 'updateUser']);
+
+            Route::get('/categories', [AdminController::class, 'categories']);
+            Route::post('/categories', [AdminController::class, 'storeCategory']);
+            Route::patch('/categories/{id}', [AdminController::class, 'updateCategory']);
+            Route::delete('/categories/{id}', [AdminController::class, 'destroyCategory']);
+
+            Route::get('/subscriptions', [AdminController::class, 'subscriptions']);
+            Route::patch('/subscriptions/{id}', [AdminController::class, 'updateSubscription']);
+
+            Route::get('/reports', [AdminController::class, 'reports']);
+            Route::patch('/reports/{id}', [AdminController::class, 'resolveReport']);
+
+            Route::get('/stats', [AdminController::class, 'stats']);
         });
     });
 });

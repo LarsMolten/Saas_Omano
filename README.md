@@ -149,6 +149,19 @@ Le frontend sera disponible sur `http://localhost:3000`
 - `GET /api/v1/my/stats` — Get own stats (basic 7d free, 30d/12m requires Pro/Premium)
 - `GET /api/v1/providers/{id}/stats` — Get provider stats (owner only)
 
+### Admin (JWT + role:admin)
+- `GET /api/v1/admin/users` — List users (filter: role, status, search)
+- `PATCH /api/v1/admin/users` — Update user (suspend/ban/change role)
+- `GET /api/v1/admin/categories` — List categories
+- `POST /api/v1/admin/categories` — Create category
+- `PATCH /api/v1/admin/categories/{id}` — Update category
+- `DELETE /api/v1/admin/categories/{id}` — Delete category
+- `GET /api/v1/admin/subscriptions` — List subscriptions (filter: plan, status)
+- `PATCH /api/v1/admin/subscriptions/{id}` — Update subscription status
+- `GET /api/v1/admin/reports` — List reports (filter: status, type)
+- `PATCH /api/v1/admin/reports/{id}` — Resolve report (dismiss/content_deleted/sanction)
+- `GET /api/v1/admin/stats` — Global stats (users, subscriptions, revenue, reports)
+
 ### Search parameters
 - `q` — Free text search (name, bio, city, category via pg_trgm + tsvector)
 - `category` — Filter by category (partial match)
@@ -182,6 +195,7 @@ npm run build
 ├── api/                    # Laravel API
 │   ├── app/
 │   │   ├── Http/Controllers/Api/V1/
+│   │   │   ├── AdminController.php
 │   │   │   ├── AuthController.php
 │   │   │   ├── FavoriteController.php
 │   │   │   ├── HealthController.php
@@ -206,6 +220,8 @@ npm run build
 │   │   │   ├── ProcessPortfolioImage.php
 │   │   │   └── SendNotification.php
 │   │   ├── Models/
+│   │   │   ├── AdminActionLog.php
+│   │   │   ├── Category.php
 │   │   │   ├── Favorite.php
 │   │   │   ├── Notification.php
 │   │   │   ├── Payment.php
@@ -214,6 +230,7 @@ npm run build
 │   │   │   ├── ProviderEvent.php
 │   │   │   ├── ProviderStatsDaily.php
 │   │   │   ├── QuoteRequest.php
+│   │   │   ├── Report.php
 │   │   │   ├── Review.php
 │   │   │   ├── Service.php
 │   │   │   ├── ServiceOption.php
@@ -222,6 +239,7 @@ npm run build
 │   │   ├── Observers/
 │   │   │   └── ReviewObserver.php
 │   │   └── Services/
+│   │       ├── AdminService.php
 │   │       ├── Gateways/ (FakeGateway, MvolaGateway, OrangeMoneyGateway, AirtelMoneyGateway)
 │   │       ├── ProviderEventTracker.php
 │   │       └── SubscriptionService.php
@@ -232,6 +250,7 @@ npm run build
 │   ├── routes/
 │   │   └── api.php
 │   └── tests/Feature/Api/V1/
+│       ├── AdminTest.php (27 tests)
 │       ├── Auth*.php (6 test files)
 │       ├── CheckRoleTest.php
 │       ├── FavoriteTest.php
@@ -249,11 +268,13 @@ npm run build
 │   │   ├── app/
 │   │   │   ├── api/auth/    # Auth API routes
 │   │   │   ├── api/v1/
+│   │   │   │   ├── admin/    # Admin proxy routes
 │   │   │   │   ├── favorites/  # Favorites proxy
 │   │   │   │   ├── notifications/ # Notifications proxy
 │   │   │   │   ├── quotes/     # Quotes proxy
 │   │   │   │   ├── search/     # Search proxy
 │   │   │   │   └── stats/      # Stats proxy
+│   │   │   ├── admin/        # Admin area (layout + pages)
 │   │   │   ├── dashboard/statistiques/ # Stats page
 │   │   │   ├── login/
 │   │   │   ├── register/
@@ -271,6 +292,7 @@ npm run build
 │   │   └── lib/
 │   │       ├── api.ts
 │   │       └── types/
+│   │           ├── admin.ts
 │   │           ├── favorite.ts
 │   │           ├── notification.ts
 │   │           ├── portfolio.ts
@@ -290,5 +312,6 @@ npm run build
 - Abonnements : plans starter/pro/premium avec limits configurables
 - Stats : provider_events + provider_stats_daily, aggregation job quotidienne
 - Notifications : jobs database queue + channels (email, SMS)
+- Admin : role-based access control, CRUD categories/users/subscriptions, reports resolution, audit log
 - Base de test : PostgreSQL (omano_test)
 - CI : GitHub Actions (tests Laravel + build Next.js)

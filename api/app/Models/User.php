@@ -20,6 +20,7 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'role',
+        'status',
         'phone',
         'email_verified_at',
         'email_verification_token',
@@ -133,5 +134,20 @@ class User extends Authenticatable implements JWTSubject
     public function subscription(): HasOne
     {
         return $this->hasOne(Subscription::class, 'provider_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function adminActions(): HasMany
+    {
+        return $this->hasMany(AdminActionLog::class, 'admin_id');
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
     }
 }
