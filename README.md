@@ -114,6 +114,16 @@ Le frontend sera disponible sur `http://localhost:3000`
 - `PATCH /api/v1/portfolio/{id}` — Update portfolio item
 - `DELETE /api/v1/portfolio/{id}` — Delete portfolio item
 
+### Favorites (JWT)
+- `GET /api/v1/favorites` — List user favorites
+- `POST /api/v1/favorites` — Add provider to favorites
+- `DELETE /api/v1/favorites/{provider_id}` — Remove from favorites
+
+### Quotes (JWT)
+- `GET /api/v1/quotes` — List quotes (clients: own requests, providers: received requests)
+- `POST /api/v1/quotes` — Create quote request (client only, rate limited 10/day)
+- `PATCH /api/v1/quotes/{id}/respond` — Respond to quote (provider only, status: accepted/declined/answered)
+
 ### Search parameters
 - `q` — Free text search (name, bio, city, category via pg_trgm + tsvector)
 - `category` — Filter by category (partial match)
@@ -148,8 +158,10 @@ npm run build
 │   ├── app/
 │   │   ├── Http/Controllers/Api/V1/
 │   │   │   ├── AuthController.php
+│   │   │   ├── FavoriteController.php
 │   │   │   ├── HealthController.php
 │   │   │   ├── PortfolioController.php
+│   │   │   ├── QuoteController.php
 │   │   │   ├── SearchController.php
 │   │   │   └── ServiceController.php
 │   │   ├── Http/Middleware/
@@ -158,8 +170,10 @@ npm run build
 │   │   ├── Jobs/
 │   │   │   └── ProcessPortfolioImage.php
 │   │   ├── Models/
+│   │   │   ├── Favorite.php
 │   │   │   ├── PortfolioItem.php
 │   │   │   ├── PortfolioMedia.php
+│   │   │   ├── QuoteRequest.php
 │   │   │   ├── Service.php
 │   │   │   ├── ServiceOption.php
 │   │   │   └── User.php
@@ -175,7 +189,9 @@ npm run build
 │   └── tests/Feature/Api/V1/
 │       ├── Auth*.php (6 test files)
 │       ├── CheckRoleTest.php
+│       ├── FavoriteTest.php
 │       ├── PortfolioCrudTest.php
+│       ├── QuoteTest.php
 │       ├── SearchTest.php
 │       └── ServiceCrudTest.php
 ├── web/                    # Next.js Frontend
@@ -204,6 +220,6 @@ npm run build
 ## Environnement de développement
 
 - Cache et files d'attente : driver `database` (pas de Redis)
-- Authentification : Laravel Sanctum
-- Base de test : SQLite en mémoire
+- Authentification : JWT (tymon/jwt-auth)
+- Base de test : PostgreSQL (omano_test)
 - CI : GitHub Actions (tests Laravel + build Next.js)
