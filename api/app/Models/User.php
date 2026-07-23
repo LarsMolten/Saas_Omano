@@ -25,6 +25,12 @@ class User extends Authenticatable implements JWTSubject
         'email_verification_token',
         'phone_verified',
         'phone_verification_code',
+        'bio',
+        'category',
+        'city',
+        'latitude',
+        'longitude',
+        'average_rating',
     ];
 
     protected $hidden = [
@@ -39,6 +45,9 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'phone_verified' => 'boolean',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+            'average_rating' => 'decimal:2',
         ];
     }
 
@@ -77,5 +86,10 @@ class User extends Authenticatable implements JWTSubject
     public function services(): HasMany
     {
         return $this->hasMany(Service::class, 'provider_id');
+    }
+
+    public function portfolioItems(): HasMany
+    {
+        return $this->hasMany(PortfolioItem::class, 'provider_id');
     }
 }

@@ -33,6 +33,26 @@ class UserFactory extends Factory
         ];
     }
 
+    public function prestataire(): static
+    {
+        return $this->state(fn () => [
+            'role' => 'prestataire',
+            'bio' => fake()->paragraph(),
+            'category' => fake()->randomElement([
+                'Traiteur', 'Décoration', 'Photographe', 'DJ & Musique',
+                'Wedding Planner', 'Fleuriste', 'Pâtissier', 'Sonorisation',
+                'Vidéaste', 'Maquillage', 'Coiffure', 'Location matériel',
+            ]),
+            'city' => fake()->randomElement([
+                'Muscat', 'Salalah', 'Sohar', 'Nizwa', 'Sur',
+                'Seeb', 'Ibri', 'Barka', 'Rustaq', 'Ibra',
+            ]),
+            'latitude' => fake()->latitude(20.0, 25.0),
+            'longitude' => fake()->longitude(52.0, 60.0),
+            'average_rating' => fake()->randomFloat(2, 0, 5),
+        ]);
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

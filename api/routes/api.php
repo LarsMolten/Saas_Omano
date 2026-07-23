@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ServiceController;
+use App\Http\Controllers\Api\V1\PortfolioController;
+use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Middleware\CheckRole;
 
 Route::prefix('v1')->group(function () {
@@ -20,6 +22,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail']);
 
     Route::get('/providers/{id}/services', [ServiceController::class, 'index']);
+    Route::get('/providers/{id}/portfolio', [PortfolioController::class, 'index']);
+    Route::get('/search', SearchController::class);
 
     Route::middleware('auth:api')->group(function () {
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);
@@ -31,10 +35,14 @@ Route::prefix('v1')->group(function () {
 
         Route::middleware(CheckRole::class . ':prestataire')->group(function () {
             Route::post('/providers/{id}/services', [ServiceController::class, 'store']);
+            Route::post('/providers/{id}/portfolio', [PortfolioController::class, 'store']);
         });
 
         Route::patch('/services/{id}', [ServiceController::class, 'update']);
         Route::delete('/services/{id}', [ServiceController::class, 'destroy']);
+
+        Route::patch('/portfolio/{id}', [PortfolioController::class, 'update']);
+        Route::delete('/portfolio/{id}', [PortfolioController::class, 'destroy']);
 
         Route::middleware(CheckRole::class . ':admin')->prefix('admin')->group(function () {
             Route::get('/users', fn () => response()->json(['message' => 'Admin users list']));

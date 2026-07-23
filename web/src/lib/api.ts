@@ -1,55 +1,36 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
-interface ApiOptions extends Omit<RequestInit, "body"> {
-  body?: unknown;
-}
+export async function apiFetch<T>(
+  path: string,
+  init?: RequestInit
+): Promise<T> {
+  const url = `${API_BASE}${path}`;
 
-class ApiError extends Error {
-  constructor(
-    public status: number,
-    public data: unknown,
-  ) {
-    super(`API error: ${status}`);
-    this.name = "ApiError";
-  }
-}
-
-async function request<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
-  const { body, headers: customHeaders, ...rest } = options;
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    ...(customHeaders as Record<string, string>),
-  };
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...rest,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
+  const res = await fetch(url, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new ApiError(response.status, data);
+  if (!res.ok) {
+    throw new Error(`API error: ${res.status}`);
   }
 
-  return data as T;
+  return res.json() as Promise<T>;
 }
 
-export const api = {
-  get: <T>(endpoint: string, options?: ApiOptions) =>
-    request<T>(endpoint, { ...options, method: "GET" }),
+export function buildSearchParams(
+  filters: Record<string, string | number | undefined>
+): string {
+  const params = new URLSearchParams();
 
-  post: <T>(endpoint: string, body?: unknown, options?: ApiOptions) =>
-    request<T>(endpoint, { ...options, method: "POST", body }),
+  for (const [key, value] of Object.entries(filters)) {
+    if (value !== undefined && value !== "" && value !== null) {
+      params.set(key, String(value));
+    }
+  }
 
-  put: <T>(endpoint: string, body?: unknown, options?: ApiOptions) =>
-    request<T>(endpoint, { ...options, method: "PUT", body }),
-
-  delete: <T>(endpoint: string, options?: ApiOptions) =>
-    request<T>(endpoint, { ...options, method: "DELETE" }),
-};
-
-export { ApiError };
+  return params.toString();
+}
