@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Favorite;
 use App\Models\User;
+use App\Services\ProviderEventTracker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -50,6 +51,8 @@ class FavoriteController extends Controller
             'user_id' => $user->id,
             'provider_id' => $provider->id,
         ]);
+
+        ProviderEventTracker::track($provider->id, 'favorite');
 
         return response()->json($favorite->load('provider:id,name,bio,category,city,average_rating,email_verified_at'), 201);
     }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendNotification;
 use App\Models\QuoteRequest;
 use App\Models\User;
+use App\Services\ProviderEventTracker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -76,6 +77,8 @@ class QuoteController extends Controller
             'description' => $validated['description'] ?? null,
             'status' => 'pending',
         ]);
+
+        ProviderEventTracker::track($provider->id, 'quote_request');
 
         SendNotification::dispatch(
             userId: $provider->id,

@@ -130,6 +130,25 @@ Le frontend sera disponible sur `http://localhost:3000`
 - `PATCH /api/v1/reviews/{id}` — Edit own review (within 48h)
 - `POST /api/v1/reviews/{id}/report` — Report a review (any authenticated user)
 
+### Notifications (JWT)
+- `GET /api/v1/notifications` — List user notifications (paginated)
+- `PATCH /api/v1/notifications/{id}/read` — Mark notification as read
+- `PATCH /api/v1/notifications/read-all` — Mark all as read
+
+### Subscriptions (JWT)
+- `GET /api/v1/subscriptions/plans` — List available plans (public)
+- `POST /api/v1/subscriptions/checkout` — Create pending subscription (checkout flow)
+- `GET /api/v1/subscriptions/current` — Get current active subscription
+
+### Payments (JWT)
+- `POST /api/v1/payments/initiate` — Initiate payment (Mvola, Orange Money, Airtel Money)
+- `POST /api/v1/payments/webhook/{operator}` — Payment webhook (public, signature-verified)
+- `GET /api/v1/payments/{id}/status` — Check payment status
+
+### Provider Stats (JWT + prestataire)
+- `GET /api/v1/my/stats` — Get own stats (basic 7d free, 30d/12m requires Pro/Premium)
+- `GET /api/v1/providers/{id}/stats` — Get provider stats (owner only)
+
 ### Search parameters
 - `q` — Free text search (name, bio, city, category via pg_trgm + tsvector)
 - `category` — Filter by category (partial match)
@@ -166,30 +185,46 @@ npm run build
 │   │   │   ├── AuthController.php
 │   │   │   ├── FavoriteController.php
 │   │   │   ├── HealthController.php
+│   │   │   ├── NotificationController.php
+│   │   │   ├── PaymentController.php
 │   │   │   ├── PortfolioController.php
 │   │   │   ├── QuoteController.php
 │   │   │   ├── ReviewController.php
 │   │   │   ├── SearchController.php
-│   │   │   └── ServiceController.php
+│   │   │   ├── ServiceController.php
+│   │   │   ├── StatsController.php
+│   │   │   └── SubscriptionController.php
 │   │   ├── Http/Middleware/
 │   │   │   ├── CheckRole.php
 │   │   │   └── JwtAuthenticate.php
+│   │   ├── Contracts/
+│   │   │   ├── Channels/NotificationChannel.php
+│   │   │   └── Payments/PaymentGatewayInterface.php
 │   │   ├── Jobs/
-│   │   │   └── ProcessPortfolioImage.php
+│   │   │   ├── AggregateProviderStats.php
+│   │   │   ├── ExpireSubscriptions.php
+│   │   │   ├── ProcessPortfolioImage.php
+│   │   │   └── SendNotification.php
 │   │   ├── Models/
 │   │   │   ├── Favorite.php
+│   │   │   ├── Notification.php
+│   │   │   ├── Payment.php
 │   │   │   ├── PortfolioItem.php
 │   │   │   ├── PortfolioMedia.php
+│   │   │   ├── ProviderEvent.php
+│   │   │   ├── ProviderStatsDaily.php
 │   │   │   ├── QuoteRequest.php
 │   │   │   ├── Review.php
 │   │   │   ├── Service.php
 │   │   │   ├── ServiceOption.php
+│   │   │   ├── Subscription.php
 │   │   │   └── User.php
-│   │   └── Observers/
-│   │       └── ReviewObserver.php
-│   │   └── Modules/
-│   │       ├── Auth/
-│   │       └── Providers/
+│   │   ├── Observers/
+│   │   │   └── ReviewObserver.php
+│   │   └── Services/
+│   │       ├── Gateways/ (FakeGateway, MvolaGateway, OrangeMoneyGateway, AirtelMoneyGateway)
+│   │       ├── ProviderEventTracker.php
+│   │       └── SubscriptionService.php
 │   ├── config/
 │   ├── database/
 │   │   ├── factories/
@@ -200,30 +235,49 @@ npm run build
 │       ├── Auth*.php (6 test files)
 │       ├── CheckRoleTest.php
 │       ├── FavoriteTest.php
+│       ├── NotificationTest.php (15 tests)
+│       ├── PaymentTest.php (20 tests)
 │       ├── PortfolioCrudTest.php
 │       ├── QuoteTest.php
 │       ├── ReviewTest.php
 │       ├── SearchTest.php
-│       └── ServiceCrudTest.php
+│       ├── ServiceCrudTest.php
+│       ├── StatsTest.php (23 tests)
+│       └── SubscriptionTest.php (26 tests)
 ├── web/                    # Next.js Frontend
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── api/auth/    # Auth API routes
-│   │   │   ├── api/v1/search/ # Search proxy
+│   │   │   ├── api/v1/
+│   │   │   │   ├── favorites/  # Favorites proxy
+│   │   │   │   ├── notifications/ # Notifications proxy
+│   │   │   │   ├── quotes/     # Quotes proxy
+│   │   │   │   ├── search/     # Search proxy
+│   │   │   │   └── stats/      # Stats proxy
+│   │   │   ├── dashboard/statistiques/ # Stats page
 │   │   │   ├── login/
 │   │   │   ├── register/
 │   │   │   ├── recherche/   # Search page (SSR)
+│   │   │   ├── favoris/     # Favorites page
+│   │   │   ├── devis-recus/ # Received quotes page
+│   │   │   ├── mes-devis/   # My quotes page
 │   │   │   └── ...
 │   │   ├── components/
 │   │   │   ├── portfolio/   # PortfolioForm, PortfolioList, PortfolioSection
 │   │   │   ├── search/      # SearchPage, SearchFiltersBar, ProviderCard
-│   │   │   └── services/    # ServiceForm, ServiceList
+│   │   │   ├── services/    # ServiceForm, ServiceList
+│   │   │   └── stats/       # StatsDashboard (recharts)
+│   │   ├── Header.tsx       # Nav + NotificationBell
 │   │   └── lib/
 │   │       ├── api.ts
 │   │       └── types/
+│   │           ├── favorite.ts
+│   │           ├── notification.ts
 │   │           ├── portfolio.ts
+│   │           ├── quote.ts
 │   │           ├── search.ts
-│   │           └── service.ts
+│   │           ├── service.ts
+│   │           └── stats.ts
 │   └── package.json
 └── README.md
 ```
@@ -232,5 +286,9 @@ npm run build
 
 - Cache et files d'attente : driver `database` (pas de Redis)
 - Authentification : JWT (tymon/jwt-auth)
+- Paiements : Gateway interface (Mvola, Orange Money, Airtel Money, FakeGateway pour dev)
+- Abonnements : plans starter/pro/premium avec limits configurables
+- Stats : provider_events + provider_stats_daily, aggregation job quotidienne
+- Notifications : jobs database queue + channels (email, SMS)
 - Base de test : PostgreSQL (omano_test)
 - CI : GitHub Actions (tests Laravel + build Next.js)

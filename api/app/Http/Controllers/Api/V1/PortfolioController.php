@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\PortfolioItem;
 use App\Models\User;
+use App\Services\ProviderEventTracker;
 use App\Services\SubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ class PortfolioController extends Controller
             ->with('media')
             ->orderBy('position')
             ->get();
+
+        ProviderEventTracker::track($provider->id, 'visit');
 
         return response()->json($items);
     }

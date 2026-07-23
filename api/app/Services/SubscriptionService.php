@@ -111,6 +111,15 @@ class SubscriptionService
     }
 
     /**
+     * Check if provider has advanced stats (Pro/Premium).
+     */
+    public function hasAdvancedStats(int $providerId): bool
+    {
+        $limits = $this->getLimitsForProvider($providerId);
+        return $limits['has_advanced_stats'] ?? false;
+    }
+
+    /**
      * Get remaining media slots.
      */
     public function remainingMediaSlots(int $providerId): ?int

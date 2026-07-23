@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\StatsController;
 use App\Http\Middleware\CheckRole;
 
 Route::prefix('v1')->group(function () {
@@ -78,6 +79,9 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/payments/initiate', [PaymentController::class, 'initiate']);
         Route::get('/payments/{id}/status', [PaymentController::class, 'status']);
+
+        Route::get('/providers/{id}/stats', [StatsController::class, 'index']);
+        Route::get('/my/stats', [StatsController::class, 'myStats']);
 
         Route::middleware(CheckRole::class . ':admin')->prefix('admin')->group(function () {
             Route::get('/users', fn () => response()->json(['message' => 'Admin users list']));
