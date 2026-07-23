@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { SearchProvider } from "@/lib/types/search";
 
 interface ProviderCardProps {
@@ -9,7 +10,10 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
   const isVerified = !!provider.email_verified_at;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
+    <Link
+      href={`/prestataire/${provider.slug}`}
+      className="block bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md hover:border-blue-200 transition-all"
+    >
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -86,6 +90,6 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 }

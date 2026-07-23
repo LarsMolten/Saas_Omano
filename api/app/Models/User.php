@@ -5,9 +5,11 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
@@ -17,6 +19,7 @@ class User extends Authenticatable implements JWTSubject
 
     protected $fillable = [
         'name',
+        'slug',
         'email',
         'password',
         'role',
@@ -52,6 +55,23 @@ class User extends Authenticatable implements JWTSubject
             'average_rating' => 'decimal:2',
             'rating_count' => 'integer',
         ];
+    }
+
+    public static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (User $user) {
+            if (empty($user->slug)) {
+                $base = Str::slug($user->name);
+                $slug = $base;
+                $i = 1;
+                while (static::withoutGlobalScopes()->where('slug', $slug)->exists()) {
+                    $slug = $base . '-' . $i++;
+                }
+                $user->slug = $slug;
+            }
+        });
     }
 
     public function setPasswordAttribute(string $value): void

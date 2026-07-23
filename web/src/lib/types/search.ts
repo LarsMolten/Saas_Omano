@@ -3,6 +3,7 @@ import type { Service } from "./service";
 export interface SearchProvider {
   id: number;
   name: string;
+  slug: string;
   bio: string | null;
   category: string | null;
   city: string | null;

@@ -14,10 +14,17 @@ use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\StatsController;
 use App\Http\Controllers\Api\V1\AdminController;
+use App\Http\Controllers\Api\V1\PublicController;
 use App\Http\Middleware\CheckRole;
 
 Route::prefix('v1')->group(function () {
     Route::get('/health', [HealthController::class, 'index']);
+
+    // Public pages
+    Route::get('/homepage', [PublicController::class, 'homepage']);
+    Route::get('/categories', [PublicController::class, 'categories']);
+    Route::get('/categories/slug/{slug}', [PublicController::class, 'categoryBySlug']);
+    Route::get('/providers/slug/{slug}', [PublicController::class, 'providerProfile']);
 
     Route::post('/auth/register', [AuthController::class, 'register'])
         ->middleware('throttle:5,1');

@@ -14,6 +14,9 @@ export default function Header() {
           <Link href="/recherche" className="text-sm text-gray-600 hover:text-gray-900">
             Recherche
           </Link>
+          <Link href="/categories/traiteur" className="text-sm text-gray-600 hover:text-gray-900 hidden sm:block">
+            Categories
+          </Link>
           <Link href="/mes-devis" className="text-sm text-gray-600 hover:text-gray-900">
             Mes devis
           </Link>
