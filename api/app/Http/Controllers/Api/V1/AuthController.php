@@ -87,6 +87,29 @@ class AuthController extends Controller
         ]);
     }
 
+    public function me(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'slug' => $user->slug,
+            'email' => $user->email,
+            'role' => $user->role,
+            'status' => $user->status,
+            'phone' => $user->phone,
+            'phone_verified' => $user->phone_verified,
+            'email_verified_at' => $user->email_verified_at,
+            'bio' => $user->bio,
+            'category' => $user->category,
+            'city' => $user->city,
+            'average_rating' => $user->average_rating,
+            'rating_count' => $user->rating_count,
+            'created_at' => $user->created_at,
+        ]);
+    }
+
     public function logout(Request $request): JsonResponse
     {
         JWTAuth::parseToken()->invalidate();

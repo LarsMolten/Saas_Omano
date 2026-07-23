@@ -46,6 +46,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('jwt.auth')->group(function () {
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
+        Route::get('/auth/me', [AuthController::class, 'me']);
 
         Route::post('/auth/send-email-verification', [AuthController::class, 'sendEmailVerification']);
         Route::post('/auth/verify-phone', [AuthController::class, 'verifyPhone']);

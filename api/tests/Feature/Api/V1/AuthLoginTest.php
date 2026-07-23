@@ -82,4 +82,56 @@ class AuthLoginTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('user.role', 'client');
     }
+
+    public function test_me_returns_current_user_info(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'me@example.com',
+            'password' => 'password123',
+            'role' => 'prestataire',
+        ]);
+
+        $token = \Tymon\JWTAuth\Facades\JWTAuth::attempt([
+            'email' => 'me@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/v1/auth/me');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'id', 'name', 'email', 'role', 'status',
+                'email_verified_at', 'slug',
+            ])
+            ->assertJsonPath('role', 'prestataire')
+            ->assertJsonPath('email', 'me@example.com');
+    }
+
+    public function test_me_requires_authentication(): void
+    {
+        $response = $this->getJson('/api/v1/auth/me');
+
+        $response->assertUnauthorized();
+    }
+
+    public function test_me_returns_client_role(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'client-me@example.com',
+            'password' => 'password123',
+            'role' => 'client',
+        ]);
+
+        $token = \Tymon\JWTAuth\Facades\JWTAuth::attempt([
+            'email' => 'client-me@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/v1/auth/me');
+
+        $response->assertOk()
+            ->assertJsonPath('role', 'client');
+    }
 }

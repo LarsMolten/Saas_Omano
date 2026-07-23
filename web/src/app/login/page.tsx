@@ -33,7 +33,14 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/");
+      const role = data.user?.role;
+      if (role === "admin") {
+        router.push("/admin");
+      } else if (role === "prestataire") {
+        router.push("/dashboard");
+      } else {
+        router.push("/client");
+      }
     } catch {
       setError("Erreur réseau.");
     } finally {
