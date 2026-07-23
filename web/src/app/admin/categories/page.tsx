@@ -9,47 +9,100 @@ export default function AdminCategoriesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const fetchCategories = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/v1/admin/categories");
-    if (res.ok) setCategories(await res.json());
-    setLoading(false);
+    try {
+      const res = await fetch("/api/v1/admin/categories");
+      if (res.ok) {
+        setCategories(await res.json());
+      } else {
+        setMessage({ type: "error", text: "Erreur lors du chargement des categories." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Erreur reseau." });
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
+  useEffect(() => {
+    if (!message) return;
+    const t = setTimeout(() => setMessage(null), 4000);
+    return () => clearTimeout(t);
+  }, [message]);
+
   function resetForm() {
     setName("");
     setEditId(null);
     setShowForm(false);
+    setSaving(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (editId) {
-      await fetch(`/api/v1/admin/categories/${editId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-    } else {
-      await fetch("/api/v1/admin/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
+    setSaving(true);
+    setMessage(null);
+
+    try {
+      if (editId) {
+        const res = await fetch(`/api/v1/admin/categories/${editId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+        if (res.ok) {
+          setMessage({ type: "success", text: "Categorie mise a jour." });
+        } else {
+          const data = await res.json();
+          setMessage({ type: "error", text: data.message ?? "Erreur lors de la modification." });
+          setSaving(false);
+          return;
+        }
+      } else {
+        const res = await fetch("/api/v1/admin/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+        if (res.ok) {
+          setMessage({ type: "success", text: "Categorie creee." });
+        } else {
+          const data = await res.json();
+          setMessage({ type: "error", text: data.message ?? "Erreur lors de la creation." });
+          setSaving(false);
+          return;
+        }
+      }
+      resetForm();
+      await fetchCategories();
+    } catch {
+      setMessage({ type: "error", text: "Erreur reseau." });
+      setSaving(false);
     }
-    resetForm();
-    fetchCategories();
   }
 
   async function handleDelete(id: number) {
     if (!confirm("Supprimer cette categorie ?")) return;
-    await fetch(`/api/v1/admin/categories/${id}`, { method: "DELETE" });
-    fetchCategories();
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/v1/admin/categories/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setMessage({ type: "success", text: "Categorie supprimee." });
+        await fetchCategories();
+      } else {
+        const data = await res.json();
+        setMessage({ type: "error", text: data.message ?? "Erreur lors de la suppression." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Erreur reseau." });
+    }
   }
 
   return (
@@ -67,6 +120,18 @@ export default function AdminCategoriesPage() {
         </button>
       </div>
 
+      {message && (
+        <div
+          className={`rounded-lg border p-3 text-sm ${
+            message.type === "success"
+              ? "border-green-200 bg-green-50 text-green-800"
+              : "border-red-200 bg-red-50 text-red-800"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
       {showForm && (
         <form
           onSubmit={handleSubmit}
@@ -78,13 +143,15 @@ export default function AdminCategoriesPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            maxLength={100}
             className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
           />
           <button
             type="submit"
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            disabled={saving || !name.trim()}
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            {editId ? "Modifier" : "Creer"}
+            {saving ? "..." : editId ? "Modifier" : "Creer"}
           </button>
         </form>
       )}
@@ -147,7 +214,9 @@ export default function AdminCategoriesPage() {
             </tbody>
           </table>
           {categories.length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-500">Aucune categorie</p>
+            <p className="py-8 text-center text-sm text-gray-500">
+              Aucune categorie. Cliquez sur &quot;Ajouter&quot; pour en creer une.
+            </p>
           )}
         </div>
       )}
