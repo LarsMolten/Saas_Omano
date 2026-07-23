@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\QuoteController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Middleware\CheckRole;
 
 Route::prefix('v1')->group(function () {
@@ -31,6 +32,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/providers/{id}/reviews', [ReviewController::class, 'providerReviews']);
     Route::get('/search', SearchController::class);
     Route::get('/subscriptions/plans', [SubscriptionController::class, 'plans']);
+    Route::post('/payments/webhook/{operator}', [PaymentController::class, 'webhook']);
 
     Route::middleware('jwt.auth')->group(function () {
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);
@@ -73,6 +75,9 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/subscriptions/checkout', [SubscriptionController::class, 'checkout']);
         Route::get('/subscriptions/current', [SubscriptionController::class, 'current']);
+
+        Route::post('/payments/initiate', [PaymentController::class, 'initiate']);
+        Route::get('/payments/{id}/status', [PaymentController::class, 'status']);
 
         Route::middleware(CheckRole::class . ':admin')->prefix('admin')->group(function () {
             Route::get('/users', fn () => response()->json(['message' => 'Admin users list']));

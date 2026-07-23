@@ -70,10 +70,21 @@ Laravel REST API for the Omano event services platform.
 - Checkout creates subscription (pending → active), cancels previous on upgrade/downgrade
 - `SubscriptionService` for limit resolution (no hard-coded values)
 
+### Payments (`/api/v1/payments`)
+- `PaymentGatewayInterface` with `initiate()`, `verifyWebhook()`, `getStatus()`
+- 3 operator adapters: `MvolaGateway`, `OrangeMoneyGateway`, `AirtelMoneyGateway`
+- `FakeGateway` for local dev (no real calls), activated via `PAYMENT_GATEWAY=fake`
+- Signature verification per operator (configurable webhook secrets)
+- Idempotent webhooks: duplicate events return early, no double activation
+- On success: subscription → active, ends_at recalculated, payment confirmation notification
+- Payments table: subscription_id, operator, external_reference (unique), amount, status, webhook_payload (jsonb)
+- Routes: `POST /initiate` (auth), `POST /webhook/{operator}` (public), `GET /{id}/status` (auth)
+
 ## Testing
 
 ```bash
-php artisan test          # 190 tests (188 pass + 2 GD-skipped)
+php artisan test          # 210 tests (208 pass + 2 GD-skipped)
+php artisan test --filter=PaymentTest     # 20 tests
 php artisan test --filter=SubscriptionTest   # 26 tests
 php artisan test --filter=NotificationTest   # 15 tests
 ```

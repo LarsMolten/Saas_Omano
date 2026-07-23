@@ -71,15 +71,14 @@ class SubscriptionController extends Controller
             'provider_id' => $user->id,
             'plan' => $validated['plan'],
             'period' => $validated['period'],
-            'status' => 'active', // TODO: change to 'pending' when payment is integrated
+            'status' => 'pending',
             'starts_at' => $startsAt,
             'ends_at' => $endsAt,
         ]);
 
         return response()->json([
-            'message' => 'Abonnement créé avec succès.',
+            'message' => 'Abonnement créé. Procédez au paiement pour l\'activer.',
             'subscription' => $subscription,
-            // 'checkout_url' => null, // Placeholder for payment integration
         ], 201);
     }
 

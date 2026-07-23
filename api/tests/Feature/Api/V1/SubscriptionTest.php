@@ -77,13 +77,13 @@ class SubscriptionTest extends TestCase
         ], ['Authorization' => "Bearer {$this->token}"]);
 
         $response->assertCreated()
-            ->assertJsonFragment(['plan' => 'pro', 'period' => 'monthly', 'status' => 'active']);
+            ->assertJsonFragment(['plan' => 'pro', 'period' => 'monthly', 'status' => 'pending']);
 
         $this->assertDatabaseHas('subscriptions', [
             'provider_id' => $this->prestataire->id,
             'plan' => 'pro',
             'period' => 'monthly',
-            'status' => 'active',
+            'status' => 'pending',
         ]);
     }
 
@@ -145,7 +145,7 @@ class SubscriptionTest extends TestCase
         $this->assertDatabaseHas('subscriptions', [
             'provider_id' => $this->prestataire->id,
             'plan' => 'pro',
-            'status' => 'active',
+            'status' => 'pending',
         ]);
     }
 
@@ -401,16 +401,16 @@ class SubscriptionTest extends TestCase
         $this->assertDatabaseHas('subscriptions', [
             'provider_id' => $this->prestataire->id,
             'plan' => 'premium',
-            'status' => 'active',
+            'status' => 'pending',
         ]);
 
+        // Current endpoint falls back to starter since premium is pending, not active
         $response = $this->getJson('/api/v1/subscriptions/current', [
             'Authorization' => "Bearer {$this->token}",
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('plan', 'premium')
-            ->assertJsonPath('limits.has_search_boost', true);
+            ->assertJsonPath('plan', 'starter');
     }
 
     public function test_downgrade_changes_limits(): void
