@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendNotification;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 
 class ReviewController extends Controller
 {
@@ -47,6 +49,19 @@ class ReviewController extends Controller
             'comment' => $validated['comment'] ?? null,
             'status' => 'published',
         ]);
+
+        SendNotification::dispatch(
+            userId: $provider->id,
+            type: 'review.received',
+            payload: [
+                'review_id' => $review->id,
+                'client_name' => $user->name,
+                'rating' => $review->rating,
+                'comment' => $review->comment,
+            ],
+            emailSubject: 'Nouvel avis reçu',
+            emailBody: "{$user->name} vous a laissé un avis {$review->rating}/5.",
+        );
 
         return response()->json(
             $review->load('user:id,name'),
@@ -97,6 +112,21 @@ class ReviewController extends Controller
         }
 
         $review->update(['status' => 'reported']);
+
+        $admins = User::where('role', 'admin')->pluck('id');
+        foreach ($admins as $adminId) {
+            SendNotification::dispatch(
+                userId: $adminId,
+                type: 'review.reported',
+                payload: [
+                    'review_id' => $review->id,
+                    'reporter_name' => $user->name,
+                    'provider_id' => $review->provider_id,
+                ],
+                emailSubject: 'Avis signalé',
+                emailBody: "Un avis a été signalé par {$user->name}.",
+            );
+        }
 
         return response()->json(['message' => 'Avis signalé.']);
     }

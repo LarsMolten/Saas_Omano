@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendNotification;
 use App\Models\QuoteRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -76,7 +77,17 @@ class QuoteController extends Controller
             'status' => 'pending',
         ]);
 
-        // TODO: dispatch notification to provider (step 10)
+        SendNotification::dispatch(
+            userId: $provider->id,
+            type: 'quote.received',
+            payload: [
+                'quote_id' => $quote->id,
+                'client_name' => $user->name,
+                'service_type' => $quote->service_type,
+            ],
+            emailSubject: 'Nouvelle demande de devis reçue',
+            emailBody: "{$user->name} vous a envoyé une demande de devis pour : {$quote->service_type}.",
+        );
 
         return response()->json(
             $quote->load('provider:id,name,city,category'),
@@ -118,7 +129,18 @@ class QuoteController extends Controller
             'provider_response' => $validated['provider_response'],
         ]);
 
-        // TODO: dispatch notification to client (step 10)
+        SendNotification::dispatch(
+            userId: $quote->user_id,
+            type: 'quote.responded',
+            payload: [
+                'quote_id' => $quote->id,
+                'provider_name' => $user->name,
+                'status' => $validated['status'],
+                'provider_response' => $validated['provider_response'],
+            ],
+            emailSubject: 'Réponse à votre demande de devis',
+            emailBody: "{$user->name} a répondu à votre demande de devis : {$validated['status']}.",
+        );
 
         return response()->json(
             $quote->load('user:id,name,email')

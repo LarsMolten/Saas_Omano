@@ -1,58 +1,78 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Omano API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel REST API for the Omano event services platform.
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **PHP 8.2+** / Laravel 11
+- **PostgreSQL 17** with pg_trgm full-text search
+- **JWT Auth** (tymon/jwt-auth) — httpOnly cookie via Next.js proxy
+- **Queue**: database (SendNotification job)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Modules
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Auth (`/api/v1/auth`)
+- Register, login, logout, refresh token
+- Email & phone verification
+- `CheckRole` middleware (client / prestataire / admin)
+- Custom `JwtAuthenticate` middleware (resolves singleton caching bug)
 
-## Learning Laravel
+### Catalog (`/api/v1/services`)
+- CRUD services + nested options (service_options table)
+- ServiceController with filtering, ordering, eager-loaded options
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Portfolio (`/api/v1/portfolio`)
+- PortfolioItem + PortfolioMedia models
+- Async `ProcessPortfolioImage` job (queue)
+- File upload via `storage_path('app/public/portfolio')`
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Search (`/api/v1/search`)
+- PostgreSQL full-text search: tsvector + GIN indexes
+- pg_trgm trigram for typo tolerance
+- Haversine SQL for geo-radius search
+- Filters: category, city, price range, rating, verified
+- 25 search tests
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### Favorites (`/api/v1/favorites`)
+- Unique constraint (user_id, provider_id)
+- GET / POST / DELETE endpoints
+- FavoriteButton component + /favoris page
 
-## Agentic Development
+### Quotes (`/api/v1/quotes`)
+- Client → Prestataire quote requests
+- Accept/reject/respond workflow
+- Rate limiting: `throttle:10,1` (10/day/client)
+- QuoteForm, QuoteList, QuoteRespondForm components
+- /mes-devis and /devis-recus pages
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### Reviews (`/api/v1/reviews`)
+- Create, update (48h window), report
+- Unique constraint (user_id, provider_id)
+- ReviewObserver recalculates User denormalized average_rating + rating_count
+- Only `published` reviews count toward rating
+
+### Notifications (`/api/v1/notifications`)
+- DB table with jsonb payload, read_at tracking
+- `SendNotification` job: stores notification + dispatches to EmailChannel / SmsChannel
+- Channel interface pattern (`App\Contracts\Channels\NotificationChannel`)
+- Triggers: quote.received, quote.responded, review.received, review.reported
+- Mark read / read all endpoints
+- NotificationBell component in header
+
+## Testing
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+php artisan test          # 164 tests (162 pass + 2 GD-skipped)
+php artisan test --filter=NotificationTest   # 15 tests
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Database
 
-## Contributing
+PostgreSQL 17 with:
+- `pg_trgm` extension (trigram similarity)
+- `tsvector` columns + GIN indexes (full-text search)
+- Haversine formula (SQL-side geo distance)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Frontend
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Next.js 16 app at `/web` — API proxy routes forward cookies to Laravel backend.
