@@ -88,7 +88,41 @@ Le frontend sera disponible sur `http://localhost:3000`
 
 ## Endpoints
 
-- `GET /api/v1/health` — Vérification de l'état du déploiement
+### Public
+- `GET /api/v1/health` — Health check
+- `GET /api/v1/providers/{id}/services` — List provider services
+- `GET /api/v1/providers/{id}/portfolio` — List provider portfolio
+- `GET /api/v1/search` — Search providers (full-text, filters, pagination)
+
+### Auth (JWT)
+- `POST /api/v1/auth/register` — Register (rate limited 5/min)
+- `POST /api/v1/auth/login` — Login (rate limited 5/min)
+- `POST /api/v1/auth/logout` — Logout
+- `POST /api/v1/auth/refresh` — Refresh token
+- `POST /api/v1/auth/forgot-password` — Request password reset
+- `POST /api/v1/auth/reset-password` — Reset password
+- `POST /api/v1/auth/verify-email` — Verify email
+- `POST /api/v1/auth/send-email-verification` — Send verification email
+- `POST /api/v1/auth/verify-phone` — Verify phone
+- `POST /api/v1/auth/send-phone-verification` — Send SMS code
+
+### Prestataire only (JWT + role:prestataire)
+- `POST /api/v1/providers/{id}/services` — Create service
+- `POST /api/v1/providers/{id}/portfolio` — Create portfolio item
+- `PATCH /api/v1/services/{id}` — Update service
+- `DELETE /api/v1/services/{id}` — Delete service
+- `PATCH /api/v1/portfolio/{id}` — Update portfolio item
+- `DELETE /api/v1/portfolio/{id}` — Delete portfolio item
+
+### Search parameters
+- `q` — Free text search (name, bio, city, category via pg_trgm + tsvector)
+- `category` — Filter by category (partial match)
+- `city` — Filter by city name
+- `lat`/`lng`/`radius` — Haversine radius search (km, default 25)
+- `price_min`/`price_max` — Price range on provider services
+- `rating_min` — Minimum average rating
+- `verified` — true/false filter on email_verified_at
+- `page`/`per_page` — Pagination (default 20)
 
 ## Tests
 
@@ -113,20 +147,56 @@ npm run build
 ├── api/                    # Laravel API
 │   ├── app/
 │   │   ├── Http/Controllers/Api/V1/
+│   │   │   ├── AuthController.php
+│   │   │   ├── HealthController.php
+│   │   │   ├── PortfolioController.php
+│   │   │   ├── SearchController.php
+│   │   │   └── ServiceController.php
+│   │   ├── Http/Middleware/
+│   │   │   ├── CheckRole.php
+│   │   │   └── JwtAuthenticate.php
+│   │   ├── Jobs/
+│   │   │   └── ProcessPortfolioImage.php
 │   │   ├── Models/
+│   │   │   ├── PortfolioItem.php
+│   │   │   ├── PortfolioMedia.php
+│   │   │   ├── Service.php
+│   │   │   ├── ServiceOption.php
+│   │   │   └── User.php
 │   │   └── Modules/
 │   │       ├── Auth/
 │   │       └── Providers/
 │   ├── config/
 │   ├── database/
+│   │   ├── factories/
+│   │   └── migrations/
 │   ├── routes/
-│   │   └── api.php         # Routes API versionnées
-│   └── tests/
+│   │   └── api.php
+│   └── tests/Feature/Api/V1/
+│       ├── Auth*.php (6 test files)
+│       ├── CheckRoleTest.php
+│       ├── PortfolioCrudTest.php
+│       ├── SearchTest.php
+│       └── ServiceCrudTest.php
 ├── web/                    # Next.js Frontend
 │   ├── src/
-│   │   ├── app/            # App Router
+│   │   ├── app/
+│   │   │   ├── api/auth/    # Auth API routes
+│   │   │   ├── api/v1/search/ # Search proxy
+│   │   │   ├── login/
+│   │   │   ├── register/
+│   │   │   ├── recherche/   # Search page (SSR)
+│   │   │   └── ...
+│   │   ├── components/
+│   │   │   ├── portfolio/   # PortfolioForm, PortfolioList, PortfolioSection
+│   │   │   ├── search/      # SearchPage, SearchFiltersBar, ProviderCard
+│   │   │   └── services/    # ServiceForm, ServiceList
 │   │   └── lib/
-│   │       └── api.ts      # Client API typé
+│   │       ├── api.ts
+│   │       └── types/
+│   │           ├── portfolio.ts
+│   │           ├── search.ts
+│   │           └── service.ts
 │   └── package.json
 └── README.md
 ```
