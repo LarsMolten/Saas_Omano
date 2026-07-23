@@ -30,7 +30,15 @@ class SearchController extends Controller
         $query = User::query()
             ->where('role', 'prestataire')
             ->with('services')
-            ->select('users.*');
+            ->select('users.*')
+            ->leftJoin('subscriptions', function ($join) {
+                $join->on('users.id', '=', 'subscriptions.provider_id')
+                    ->where('subscriptions.status', '=', 'active')
+                    ->where('subscriptions.ends_at', '>', now());
+            })
+            ->addSelect(DB::raw(
+                "CASE WHEN subscriptions.plan = 'premium' THEN 1 ELSE 0 END AS is_premium"
+            ));
 
         $hasGeoSearch = !empty($validated['lat']) && !empty($validated['lng']);
         $radius = $validated['radius'] ?? 25;
@@ -59,13 +67,12 @@ class SearchController extends Controller
                 [$tsQuery]
             );
 
-            if ($hasGeoSearch) {
-                $query->orderByRaw("ts_rank(search_vector, to_tsquery('simple', ?)) DESC", [$tsQuery]);
-            } else {
-                $query->orderByRaw("ts_rank(search_vector, to_tsquery('simple', ?)) DESC", [$tsQuery]);
-            }
+            $query->orderByRaw(
+                "is_premium DESC, ts_rank(search_vector, to_tsquery('simple', ?)) DESC",
+                [$tsQuery]
+            );
         } elseif (!$hasGeoSearch) {
-            $query->orderBy('average_rating', 'desc');
+            $query->orderByRaw('is_premium DESC, average_rating DESC');
         }
 
         if (!empty($validated['category'])) {

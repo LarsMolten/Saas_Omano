@@ -59,10 +59,22 @@ Laravel REST API for the Omano event services platform.
 - Mark read / read all endpoints
 - NotificationBell component in header
 
+### Subscriptions (`/api/v1/subscriptions`)
+- Plans: Starter / Pro / Premium with configurable limits in `config/subscription.php`
+- Starter: limited portfolio media (10) + services (3), no video
+- Pro: unlimited portfolio + video + Pro badge + stats
+- Premium: Pro + search boost + advanced stats
+- Limits enforced in PortfolioController (media) and ServiceController (services)
+- SearchController boosts Premium providers in ranking
+- `ExpireSubscriptions` artisan command (scheduled every minute via `schedule:run`)
+- Checkout creates subscription (pending → active), cancels previous on upgrade/downgrade
+- `SubscriptionService` for limit resolution (no hard-coded values)
+
 ## Testing
 
 ```bash
-php artisan test          # 164 tests (162 pass + 2 GD-skipped)
+php artisan test          # 190 tests (188 pass + 2 GD-skipped)
+php artisan test --filter=SubscriptionTest   # 26 tests
 php artisan test --filter=NotificationTest   # 15 tests
 ```
 

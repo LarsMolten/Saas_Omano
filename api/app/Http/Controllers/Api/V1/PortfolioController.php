@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\PortfolioItem;
 use App\Models\User;
+use App\Services\SubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -117,16 +118,31 @@ class PortfolioController extends Controller
 
     private function handleMediaUpload(Request $request, PortfolioItem $item): void
     {
-        // TODO: Check media limit based on subscription plan
-        // Starter plan: limited gallery (e.g. 5 media per item)
-        // Pro/Premium plan: unlimited
-        $maxMedia = 50;
+        $subscriptionService = app(SubscriptionService::class);
+        $userId = $item->provider_id;
+        $limits = $subscriptionService->getLimitsForProvider($userId);
+
+        // Check video permission
+        $allowsVideo = $limits['allows_video'] ?? false;
 
         $existingCount = $item->media()->count();
         $files = $request->file('media');
-        $allowed = $maxMedia - $existingCount;
 
-        $files = array_slice($files, 0, $allowed);
+        // Filter out videos if not allowed
+        if (!$allowsVideo) {
+            $files = array_filter($files, fn ($file) => in_array($file->getClientOriginalExtension(), ['jpeg', 'jpg', 'png', 'gif', 'webp']));
+            $files = array_values($files);
+        }
+
+        // Apply media limit (total across all items)
+        $maxMedia = $limits['max_portfolio_media'] ?? null;
+        if ($maxMedia !== null) {
+            $totalExisting = \App\Models\PortfolioMedia::whereHas('portfolioItem', function ($q) use ($userId) {
+                $q->where('provider_id', $userId);
+            })->count();
+            $allowed = $maxMedia - $totalExisting;
+            $files = array_slice($files, 0, $allowed);
+        }
 
         $maxPosition = $item->media()->max('position') ?? 0;
 

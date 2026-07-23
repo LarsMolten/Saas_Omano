@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\User;
+use App\Services\SubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -36,6 +37,15 @@ class ServiceController extends Controller
 
         if (!$user->isPrestataire()) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);
+        }
+
+        $subscriptionService = app(SubscriptionService::class);
+        if (!$subscriptionService->canAddService($user->id)) {
+            $remaining = $subscriptionService->remainingServiceSlots($user->id);
+            return response()->json([
+                'message' => "Limite de services atteinte. Passez à un plan supérieur pour en créer davantage.",
+                'remaining' => $remaining,
+            ], 403);
         }
 
         $validated = $request->validate([
