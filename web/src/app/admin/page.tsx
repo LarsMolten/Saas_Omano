@@ -8,7 +8,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetch("/api/v1/admin/stats")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : null))
       .then(setStats)
       .catch(() => {});
   }, []);
