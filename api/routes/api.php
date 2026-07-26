@@ -32,25 +32,31 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/login', [AuthController::class, 'login'])
         ->middleware('throttle:5,1');
 
-    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
-    Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail']);
+    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])
+        ->middleware('throttle:3,1');
+    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])
+        ->middleware('throttle:5,1');
+    Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail'])
+        ->middleware('throttle:5,1');
 
     Route::get('/providers/{id}/services', [ServiceController::class, 'index']);
     Route::get('/providers/{id}/portfolio', [PortfolioController::class, 'index']);
     Route::get('/providers/{id}/reviews', [ReviewController::class, 'providerReviews']);
     Route::get('/search', SearchController::class);
     Route::get('/subscriptions/plans', [SubscriptionController::class, 'plans']);
-    Route::post('/payments/webhook/{operator}', [PaymentController::class, 'webhook']);
+    Route::post('/payments/webhook/{operator}', [PaymentController::class, 'webhook'])
+        ->middleware('throttle:30,1');
 
     Route::middleware('jwt.auth')->group(function () {
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
 
-        Route::post('/auth/send-email-verification', [AuthController::class, 'sendEmailVerification']);
+        Route::post('/auth/send-email-verification', [AuthController::class, 'sendEmailVerification'])
+            ->middleware('throttle:5,1');
         Route::post('/auth/verify-phone', [AuthController::class, 'verifyPhone']);
-        Route::post('/auth/send-phone-verification', [AuthController::class, 'sendPhoneVerification']);
+        Route::post('/auth/send-phone-verification', [AuthController::class, 'sendPhoneVerification'])
+            ->middleware('throttle:3,1');
 
         Route::middleware(CheckRole::class . ':prestataire')->group(function () {
             Route::post('/providers/{id}/services', [ServiceController::class, 'store']);
@@ -77,16 +83,19 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::patch('/reviews/{id}', [ReviewController::class, 'update']);
-        Route::post('/reviews/{id}/report', [ReviewController::class, 'report']);
+        Route::post('/reviews/{id}/report', [ReviewController::class, 'report'])
+            ->middleware('throttle:10,1');
 
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'read']);
         Route::patch('/notifications/read-all', [NotificationController::class, 'readAll']);
 
-        Route::post('/subscriptions/checkout', [SubscriptionController::class, 'checkout']);
+        Route::post('/subscriptions/checkout', [SubscriptionController::class, 'checkout'])
+            ->middleware('throttle:5,1');
         Route::get('/subscriptions/current', [SubscriptionController::class, 'current']);
 
-        Route::post('/payments/initiate', [PaymentController::class, 'initiate']);
+        Route::post('/payments/initiate', [PaymentController::class, 'initiate'])
+            ->middleware('throttle:5,1');
         Route::get('/payments/{id}/status', [PaymentController::class, 'status']);
 
         Route::get('/providers/{id}/stats', [StatsController::class, 'index']);

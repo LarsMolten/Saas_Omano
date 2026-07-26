@@ -105,7 +105,7 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Payload invalide.'], 422);
         }
 
-        $payment = Payment::where('external_reference', $externalRef)->first();
+        $payment = Payment::with('subscription.provider')->where('external_reference', $externalRef)->first();
 
         if (!$payment) {
             return response()->json(['message' => 'Paiement introuvable.'], 404);
@@ -133,7 +133,7 @@ class PaymentController extends Controller
      */
     public function status(Request $request, string $id): JsonResponse
     {
-        $payment = Payment::findOrFail($id);
+        $payment = Payment::with('subscription')->findOrFail($id);
         $user = $request->user();
 
         if ($payment->subscription->provider_id !== $user->id) {

@@ -13,7 +13,7 @@ class SmsChannel implements NotificationChannel
         }
 
         // TODO: integrate with SMS provider (Twilio, Vonage, etc.)
-        // For now, log the SMS that would be sent
-        \Log::info("SMS to {$user->phone}: {$subject} - {$body}");
+        // For now, log the SMS that would be sent (without sensitive content)
+        \Log::info("SMS sent to user #{$user->id}");
     }
 }

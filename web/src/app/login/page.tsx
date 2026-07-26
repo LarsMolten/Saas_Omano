@@ -49,12 +49,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6 sm:p-8">
         <h1 className="text-2xl font-bold text-center mb-6">Connexion</h1>
 
         {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded mb-4 text-sm">
+          <div className="bg-red-50 text-red-700 p-3 rounded mb-4 text-sm" role="alert">
             {error}
           </div>
         )}
@@ -69,7 +69,7 @@ export default function LoginPage() {
               name="email"
               type="email"
               required
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -82,7 +82,7 @@ export default function LoginPage() {
               name="password"
               type="password"
               required
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 

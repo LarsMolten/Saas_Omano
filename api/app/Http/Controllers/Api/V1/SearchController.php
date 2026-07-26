@@ -30,7 +30,7 @@ class SearchController extends Controller
         $query = User::query()
             ->where('role', 'prestataire')
             ->with('services')
-            ->select('users.*')
+            ->select('users.id', 'users.name', 'users.slug', 'users.bio', 'users.category', 'users.city', 'users.average_rating', 'users.rating_count', 'users.email_verified_at', 'users.latitude', 'users.longitude', 'users.created_at')
             ->leftJoin('subscriptions', function ($join) {
                 $join->on('users.id', '=', 'subscriptions.provider_id')
                     ->where('subscriptions.status', '=', 'active')

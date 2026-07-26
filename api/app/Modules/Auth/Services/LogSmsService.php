@@ -9,8 +9,7 @@ class LogSmsService implements SmsServiceInterface
     public function send(string $phone, string $message): bool
     {
         Log::info('SMS sent', [
-            'phone' => $phone,
-            'message' => $message,
+            'phone' => substr($phone, 0, 4) . '****',
         ]);
 
         return true;

@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
         ]);
+
+        $middleware->api(append: [
+            \Illuminate\Routing\Middleware\ThrottleRequests::class.':120,1',
+            \App\Http\Middleware\SecurityHeaders::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

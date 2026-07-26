@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@/lib/hooks/useUser";
@@ -16,6 +16,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const { user, loading, error } = useUser();
   const router = useRouter();
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && error) {
@@ -25,6 +26,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       router.push(user.role === "admin" ? "/admin" : "/dashboard");
     }
   }, [loading, error, user, router]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   if (loading) {
     return (
@@ -40,8 +45,16 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto">
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-16 items-center border-b border-gray-200 px-6">
           <Link href="/client" className="text-lg font-bold text-gray-900">
             Mon espace
@@ -81,6 +94,15 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {/* Main */}
       <div className="flex flex-1 flex-col">
         <header className="flex h-16 items-center border-b border-gray-200 bg-white px-4 lg:px-6">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="mr-3 p-2 text-gray-600 hover:text-gray-900 lg:hidden"
+            aria-label="Menu"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
           <h2 className="text-sm font-medium text-gray-500">
             Bonjour, {user.name}
           </h2>

@@ -254,7 +254,6 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Si cet email existe, un lien de réinitialisation a été envoyé.',
-            'debug_token' => env('APP_DEBUG') ? $token : null,
         ]);
     }
 

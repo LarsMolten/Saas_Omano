@@ -99,7 +99,7 @@ class PortfolioController extends Controller
 
     public function destroy(Request $request, string $id): JsonResponse
     {
-        $item = PortfolioItem::findOrFail($id);
+        $item = PortfolioItem::with('media')->findOrFail($id);
 
         if ($item->provider_id !== $request->user()->id) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);
